@@ -34,4 +34,32 @@ namespace DurableFunctionsNetFrameworkExample.Functions
         }
 
     }
+
+    [DependencyInjectionConfig(typeof(AutofacConfig))]
+    public static class ExampleFunction2
+    {
+
+        [FunctionName("GreeterFunction2")]
+        public static async Task<string> Run([OrchestrationTrigger] DurableOrchestrationContextBase context, ILogger log, [Inject]IGreeter greeter)
+        {
+            var name = context.GetInput<string>();
+            var greeting = greeter.Greet(name);
+            var primaryGoodbye = await context.CallActivityAsync<string>("PrimaryGoodbye2", name);
+            var secondaryGoodbye = await context.CallActivityAsync<string>("SecondaryGoodbye2", name);
+            return $"{greeting} {primaryGoodbye} or {secondaryGoodbye}";
+        }
+
+        [FunctionName("PrimaryGoodbye2")]
+        public static async Task<string> PrimaryGoodbye([ActivityTrigger]string name, [Inject("Primary")]IGoodbyer goodbyer)
+        {
+            return goodbyer.Goodbye(name);
+        }
+
+        [FunctionName("SecondaryGoodbye2")]
+        public static async Task<string> SecondaryGoodbye([ActivityTrigger]string name, [Inject("Secondary")]IGoodbyer goodbyer)
+        {
+            return goodbyer.Goodbye(name);
+        }
+
+    }
 }

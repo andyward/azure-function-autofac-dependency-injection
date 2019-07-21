@@ -2,31 +2,51 @@
 using AzureFunctions.Autofac.Exceptions;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace AzureFunctions.Autofac.Configuration
 {
     public static class DependencyInjection
     {
-        private static ConcurrentDictionary<string, IContainer> containers = new ConcurrentDictionary<string, IContainer>();
-        private static ConcurrentDictionary<Guid, ILifetimeScope> instanceContainers = new ConcurrentDictionary<Guid, ILifetimeScope>();
+        /// <summary>
+        /// The global set of containers, which can be shared across functions
+        /// </summary>
+        private static ConcurrentDictionary<MethodInfo, IContainer> rootContainers = new ConcurrentDictionary<MethodInfo, IContainer>();
+
+        /// <summary>
+        /// Tracks the container assigned to a specific function
+        /// </summary>
+        private static ConcurrentDictionary<string, IContainer> functionContainers = new ConcurrentDictionary<string, IContainer>();
+
+        /// <summary>
+        /// Tracks the scoped lifecycle assigned to an instance of an executing functions
+        /// </summary>
+        private static ConcurrentDictionary<Guid, ILifetimeScope> instanceLifetimeScopes = new ConcurrentDictionary<Guid, ILifetimeScope>();
+
         public static void Initialize(Action<ContainerBuilder> cfg, string functionClassName)
         {
-            containers.GetOrAdd(functionClassName, str =>
+
+            // Lookup for this function
+            functionContainers.GetOrAdd(functionClassName, str =>
             {
-                ContainerBuilder builder = new ContainerBuilder();
-                cfg(builder);
-                return builder.Build();
+                // See if we've buily the container already
+                return rootContainers.GetOrAdd(cfg.Method, method =>
+                {
+                    // First time, so build it.
+                    ContainerBuilder builder = new ContainerBuilder();
+                    cfg(builder);
+                    return builder.Build();
+                });
+                
             });
         }
 
         public static object Resolve(Type type, string name, string functionClassName, Guid functionInstanceId)
         {
-            if (containers.ContainsKey(functionClassName))
+            if (functionContainers.ContainsKey(functionClassName))
             {
-                var container = containers[functionClassName];
-                var scope = instanceContainers.GetOrAdd(functionInstanceId, id => container.BeginLifetimeScope());
+                var container = functionContainers[functionClassName];
+                var scope = instanceLifetimeScopes.GetOrAdd(functionInstanceId, id => container.BeginLifetimeScope());
 
                 object resolved = null;
                 if (string.IsNullOrWhiteSpace(name))
@@ -47,7 +67,7 @@ namespace AzureFunctions.Autofac.Configuration
 
         public static void RemoveScope(Guid functionInstanceId)
         {
-            if (instanceContainers.TryRemove(functionInstanceId, out ILifetimeScope scope))
+            if (instanceLifetimeScopes.TryRemove(functionInstanceId, out ILifetimeScope scope))
             {
                 scope.Dispose();
             };

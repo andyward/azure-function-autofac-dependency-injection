@@ -14,7 +14,12 @@ namespace DurableFunctionsNetFrameworkExample.Configs
                 builder.RegisterType<Greeter>().As<IGreeter>();
                 builder.RegisterType<Goodbyer>().Named<IGoodbyer>("Primary");
                 builder.RegisterType<AlternateGoodbyer>().Named<IGoodbyer>("Secondary");
+
+                builder.RegisterBuildCallback(cb => Builds++) ;
             }, functionName);
         }
+
+        public static int Builds { get; private set; } = 0;
     }
+
 }
