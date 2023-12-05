@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28705.295
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctions.Autofac.Shared", "AzureFunctions.Autofac.Shared\AzureFunctions.Autofac.Shared.csproj", "{1807691A-3F7E-4774-9B1D-E6B4A8FBFB3F}"
 EndProject
@@ -35,9 +35,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CachingExample", "caching-e
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples.Tests", "Examples.Tests", "{11477B6D-C1E4-43E3-963B-56AE0A9F4666}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCoreExample.Tests", "NetCoreExample.Tests\NetCoreExample.Tests.csproj", "{A4216E5E-19F2-4B23-805B-E4FDA3E2D32D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreExample.Tests", "NetCoreExample.Tests\NetCoreExample.Tests.csproj", "{A4216E5E-19F2-4B23-805B-E4FDA3E2D32D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionsV3Example", "FunctionsV3Example\FunctionsV3Example.csproj", "{C06F892D-204C-413D-BF17-A346961332BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionsV3Example", "FunctionsV3Example\FunctionsV3Example.csproj", "{C06F892D-204C-413D-BF17-A346961332BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
