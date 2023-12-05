@@ -10,7 +10,12 @@ namespace AzureFunctions.Autofac.Configuration
 {
     public static class DependencyInjection
     {
-        private static ConcurrentDictionary<string, IContainer> containers = new ConcurrentDictionary<string, IContainer>();
+        /// <summary>
+        /// The global set of containers, which can be shared across functions
+        /// </summary>
+        private static ConcurrentDictionary<object, IContainer> rootContainers = new ConcurrentDictionary<object, IContainer>();
+
+        private static ConcurrentDictionary<string, IContainer> functionContainers = new ConcurrentDictionary<string, IContainer>();
         private static ConcurrentDictionary<Guid, ILifetimeScope> instanceContainers = new ConcurrentDictionary<Guid, ILifetimeScope>();
 
         private static ConcurrentDictionary<string, bool> _enableCaching = new ConcurrentDictionary<string, bool>();
@@ -30,8 +35,10 @@ namespace AzureFunctions.Autofac.Configuration
             _enableCaching[functionClassName] = enableCaching;
             if (_enableCaching[functionClassName])
             {
-                var container = SetupContainerBuilder(cfg, containerAction);
-                containers.GetOrAdd(functionClassName, str => container);
+                functionContainers.GetOrAdd(functionClassName, str =>
+                {
+                    return rootContainers.GetOrAdd(cfg.Target, method => SetupContainerBuilder(cfg, containerAction));
+                });
             }
             else
             {
@@ -41,12 +48,12 @@ namespace AzureFunctions.Autofac.Configuration
 
         public static object Resolve(Type type, string name, string functionClassName, Guid functionInstanceId)
         {
-            if (containers.ContainsKey(functionClassName) || (!_enableCaching[functionClassName] && nonCachedContainerBuilder.ContainsKey(functionClassName)))
+            if (functionContainers.ContainsKey(functionClassName) || (!_enableCaching[functionClassName] && nonCachedContainerBuilder.ContainsKey(functionClassName)))
             {
                 IContainer container;
                 if (_enableCaching[functionClassName])
                 {
-                    container = containers[functionClassName];
+                    container = functionContainers[functionClassName];
                 }
                 else
                 {
